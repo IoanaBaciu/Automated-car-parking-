@@ -1,0 +1,103 @@
+//The code
+
+#include <LiquidCrystal.h>// initialize the library with the numbers of the interface pins
+LiquidCrystal lcd(A0, A1, A2, A3, A4, A5);
+#include <Servo.h> //includes the servo library
+
+Servo myservo1;//this line creates a servo object called myservo1
+int Contrast=75;
+int ir_s1 = 2;//enter parking sensor
+int ir_s2 = 4;//output parking sensor, which also has the function of input when the cars leaving the parking area
+
+int Total = 4;//total capacity of the parking area
+int Space; //the space which remains empty after each movement
+
+//if the flag is zero, print "Go Forward" and then set the flag to one.
+int flag1 = 0;//setting the flag variable to 0 such that the message will be printed
+int flag2 = 0;
+
+void setup() {
+pinMode(ir_s1, INPUT);//set the pin where the first sensor is placed to behave as an input 
+pinMode(ir_s2, INPUT);
+
+// attaches the servo on pin 3 to the servo object  
+myservo1.attach(3); //servo.attach(pin) ->pin: the nr of the pin that the servo is attached to
+
+myservo1.write(100); // sets the servo position according to the scaled value. to the mid-point
+
+analogWrite(6,Contrast);
+
+//we set the number of the columns and rows of the LCD
+lcd.begin(16, 2); 
+lcd.setCursor (0,0);
+lcd.print("  Car  Parking  ");
+lcd.setCursor (0,1);
+lcd.print("     System     ");
+delay (2000);
+lcd.clear();  
+
+Space = Total;
+}
+
+void loop()
+{ 
+
+//LOW MEANS NO OBSTACLE
+//flag is set to 1 to prevent the message being printed again until somewhere else in the program it is set to zero again 
+if(digitalRead (ir_s1) == LOW && flag1==0)
+{
+  if(Space>0)
+  {
+    flag1=1;
+    if(flag2==0)
+    {
+      myservo1.write(0); //0 is all the way turned to the left.
+      Space = Space-1;
+    }
+  }
+  else
+  {
+    lcd.setCursor (0,0);
+    lcd.print(" Sorry not Space ");  
+    lcd.setCursor (1,1);
+    lcd.print("    Available    "); 
+    delay (1000);
+    lcd.clear(); 
+  }
+}
+
+if(digitalRead (ir_s2) == LOW && flag2==0)
+
+{
+  flag2=1;
+  if(flag1==0)
+  {
+    myservo1.write(0); 
+    Space = Space+1;
+  }
+  
+}
+
+if(flag1==1 && flag2==1)
+{
+  delay (1000);
+  myservo1.write(100);
+  flag1=0;
+  flag2=0;
+}
+
+lcd.setCursor (0,0);
+lcd.print("Total Space: ");
+lcd.print(Total);
+
+lcd.setCursor (0,1);
+lcd.print("Free  Space: ");
+lcd.print(Space);
+}
+
+
+
+
+
+
+
